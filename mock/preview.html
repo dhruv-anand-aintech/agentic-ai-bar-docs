@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agentic AI Bar documentation mockups</title>
+  <style>
+    :root { color-scheme: light; --ink:#17201d; --muted:#68736e; --line:#d9dfdc; --paper:#f4f6f5; --white:#fff; --green:#155f47; --lime:#c9ef78; --amber:#f2b84b; --red:#a23d36; }
+    * { box-sizing:border-box; }
+    body { margin:0; padding:48px; background:#e7ebe8; color:var(--ink); font-family:"Avenir Next",Avenir,"Segoe UI",sans-serif; letter-spacing:0; }
+    .shot { width:1200px; height:720px; margin:0 auto 48px; overflow:hidden; background:var(--paper); border:1px solid #cbd3cf; box-shadow:0 18px 45px rgba(31,45,39,.13); }
+    .bar { height:62px; padding:0 26px; display:flex; align-items:center; justify-content:space-between; background:var(--ink); color:white; }
+    .brand { display:flex; gap:12px; align-items:center; font-weight:700; }
+    .mark { width:26px; height:26px; display:grid; place-items:center; border-radius:6px; color:var(--ink); background:var(--lime); font-size:13px; }
+    .online { font-size:12px; color:#c7d1cd; }
+    .grid { display:grid; grid-template-columns:220px 1fr 300px; height:658px; }
+    aside { padding:24px 18px; border-right:1px solid var(--line); background:#eef1ef; }
+    .aside-title,.kicker { color:var(--muted); font-size:11px; text-transform:uppercase; font-weight:700; letter-spacing:.08em; }
+    .thread { margin-top:18px; padding:12px; border-left:3px solid transparent; font-size:13px; }
+    .thread.active { background:var(--white); border-left-color:var(--green); }
+    .thread span { display:block; margin-top:5px; font-size:11px; color:var(--muted); }
+    main { min-width:0; display:flex; flex-direction:column; background:var(--white); }
+    .conversation { flex:1; padding:30px 34px; }
+    .question { margin-left:auto; width:70%; padding:13px 15px; background:#edf5f1; border:1px solid #d8e7e0; font-size:14px; }
+    .answer { margin-top:28px; max-width:90%; font-family:Georgia,serif; font-size:17px; line-height:1.55; }
+    .answer strong { font-family:"Avenir Next",sans-serif; }
+    .cite { display:inline-grid; place-items:center; width:20px; height:20px; border-radius:50%; background:var(--lime); font:700 11px "Avenir Next",sans-serif; }
+    .composer { margin:0 28px 26px; padding:14px; border:1px solid #bfc9c4; background:#fbfcfb; }
+    .prompt { height:42px; color:#47524d; font-size:14px; }
+    .composer-row { display:flex; align-items:center; justify-content:space-between; }
+    select { border:0; background:transparent; color:var(--green); font-weight:700; }
+    button { border:0; padding:10px 14px; background:var(--green); color:white; font-weight:700; }
+    .trace { padding:24px 20px; border-left:1px solid var(--line); background:#fafbfa; }
+    .trace h2 { margin:5px 0 22px; font:600 17px Georgia,serif; }
+    .event { position:relative; padding:0 0 22px 24px; border-left:1px solid #c8d1cd; font-size:13px; }
+    .event:before { content:""; position:absolute; width:9px; height:9px; left:-5px; top:4px; border-radius:50%; background:var(--green); }
+    .event span { display:block; margin-top:5px; color:var(--muted); font-size:11px; }
+    .event.running:before { background:var(--amber); box-shadow:0 0 0 4px #f9e6bd; }
+    .approval-shot { padding:0; display:grid; grid-template-rows:62px 1fr; }
+    .approval-body { display:grid; place-items:center; padding:48px; background:#eef1ef; }
+    .approval { width:790px; background:white; border:1px solid #cdd5d1; }
+    .approval-head { display:flex; justify-content:space-between; padding:24px 28px; border-bottom:1px solid var(--line); }
+    .approval h1 { margin:5px 0 0; font:600 25px Georgia,serif; }
+    .risk { align-self:center; padding:6px 9px; border:1px solid #e2b4af; color:var(--red); font-size:12px; font-weight:700; }
+    .meta { display:grid; grid-template-columns:120px 1fr; gap:10px; padding:20px 28px; font-size:13px; }
+    .meta dt { color:var(--muted); }
+    .meta dd { margin:0; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+    pre { margin:0 28px; padding:18px; overflow:hidden; background:#18211e; color:#dfe9e4; font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace; }
+    .minus { color:#f3a6a1; }.plus { color:#bfe67c; }
+    .rationale { margin:18px 28px 0; color:#46514c; font-size:13px; }
+    .actions { padding:22px 28px; display:flex; justify-content:flex-end; gap:10px; }
+    .reject { background:white; color:var(--red); border:1px solid #d4aaa6; }
+    .approve { background:var(--green); }
+    .expires { margin-right:auto; align-self:center; color:var(--muted); font-size:12px; }
+  </style>
+</head>
+<body>
+  <section class="shot" id="agent-console">
+    <header class="bar"><div class="brand"><span class="mark">AI</span>Agent workspace</div><div class="online">Mock environment · no live data</div></header>
+    <div class="grid">
+      <aside><div class="aside-title">Threads</div><div class="thread active">Quarterly policy review<span>2 runs · just now</span></div><div class="thread">Vendor comparison<span>1 run · yesterday</span></div><div class="thread">Support handoff<span>4 runs · Monday</span></div></aside>
+      <main>
+        <div class="conversation"><div class="question">Compare the proposed retention policy with the current handbook and cite the differences.</div><div class="answer"><strong>Three changes need review.</strong> The proposal shortens standard retention from 45 to 30 days, adds an exception for active investigations, and requires an owner before legal hold release. <span class="cite">1</span> The change is internally consistent, but the release workflow still needs an approval owner. <span class="cite">2</span></div></div>
+        <div class="composer"><div class="prompt">Ask a follow-up or attach a policy…</div><div class="composer-row"><select aria-label="Model"><option>Reasoning Large · Responses</option></select><button>Send</button></div></div>
+      </main>
+      <section class="trace"><div class="kicker">Run trace</div><h2>4.8 seconds</h2><div class="event">Catalog resolved<span>reasoning-large · vision · tools</span></div><div class="event">Handbook searched<span>2 invented sources selected</span></div><div class="event">Policy compared<span>3 differences structured</span></div><div class="event running">Answer composed<span>citations attached</span></div></section>
+    </div>
+  </section>
+  <section class="shot approval-shot" id="approval-flow">
+    <header class="bar"><div class="brand"><span class="mark">AI</span>Approval required</div><div class="online">Proposal apv_mock_017</div></header>
+    <div class="approval-body"><article class="approval"><div class="approval-head"><div><div class="kicker">File update</div><h1>Change retention period</h1></div><span class="risk">HIGH RISK</span></div><dl class="meta"><dt>Target</dt><dd>config/retention.json</dd><dt>Action</dt><dd>update</dd><dt>Requested by</dt><dd>policy-review-run</dd></dl><pre><span class="minus">-  "days": 45,</span>
+<span class="plus">+  "days": 30,</span>
+   "legalHold": true</pre><p class="rationale">Matches the operator-requested policy while preserving the legal-hold safeguard. This mock proposal uses invented content.</p><div class="actions"><span class="expires">Expires in 8 minutes</span><button class="reject">Reject</button><button class="approve">Approve once</button></div></article></div>
+  </section>
+</body>
+</html>
