@@ -1,0 +1,22 @@
+{
+  "name": "agentic-ai-bar-docs",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Public documentation and mock examples for Agentic AI Bar",
+  "scripts": {
+    "docs:dev": "vitepress docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  },
+  "devDependencies": {
+    "@fontsource-variable/ibm-plex-sans": "^5.2.8",
+    "@fontsource/ibm-plex-mono": "^5.2.7",
+    "vitepress": "1.6.4"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "overrides": {
+    "vite": "6.4.3"
+  }
+}
