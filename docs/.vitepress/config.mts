@@ -3,17 +3,20 @@ import { fileURLToPath } from "node:url";
 
 const repository = "https://github.com/dhruv-anand-aintech/agentic-ai-bar-docs";
 const imagesDirectory = fileURLToPath(new URL("../public/images/", import.meta.url));
+const base = process.env.DOCS_BASE ?? "/agentic-ai-bar-docs/";
+const hostname = (process.env.DOCS_HOSTNAME ?? "https://dhruv-anand-aintech.github.io").replace(/\/$/, "");
+const siteUrl = `${hostname}${base}`;
 
 export default defineConfig({
   title: "Agentic AI Bar",
   description:
     "Provider-neutral agent UI, approvals, durable threads, tools, artifacts, and observability.",
   lang: "en-US",
-  base: "/agentic-ai-bar-docs/",
+  base,
   cleanUrls: true,
   lastUpdated: true,
   sitemap: {
-    hostname: "https://dhruv-anand-aintech.github.io/agentic-ai-bar-docs/",
+    hostname: siteUrl,
     transformItems: (items) => items.filter((item) => item.url !== "404"),
   },
   vite: {
@@ -31,8 +34,8 @@ export default defineConfig({
     ["meta", { property: "og:type", content: "website" }],
     ["meta", { property: "og:title", content: "Agentic AI Bar documentation" }],
     ["meta", { property: "og:site_name", content: "Agentic AI Bar" }],
-    ["meta", { property: "og:url", content: "https://dhruv-anand-aintech.github.io/agentic-ai-bar-docs/" }],
-    ["meta", { property: "og:image", content: "https://dhruv-anand-aintech.github.io/agentic-ai-bar-docs/images/agent-console.png" }],
+    ["meta", { property: "og:url", content: siteUrl }],
+    ["meta", { property: "og:image", content: `${siteUrl}images/agent-console.png` }],
     [
       "meta",
       {
@@ -42,7 +45,7 @@ export default defineConfig({
       },
     ],
     ["meta", { name: "twitter:card", content: "summary_large_image" }],
-    ["link", { rel: "icon", href: "/agentic-ai-bar-docs/favicon.svg", type: "image/svg+xml" }],
+    ["link", { rel: "icon", href: `${base}favicon.svg`, type: "image/svg+xml" }],
   ],
   themeConfig: {
     siteTitle: "Agentic AI Bar",
