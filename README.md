@@ -1,5 +1,7 @@
 # Agentic AI Bar
 
+**Documentation site:** [dhruvanand-aintech.github.io/agentic-ai-bar-docs](https://dhruvanand-aintech.github.io/agentic-ai-bar-docs/)
+
 Public documentation and mock integration examples for Agentic AI Bar v0.2.0, an embeddable agent command surface and provider-neutral runtime contract.
 
 > [!IMPORTANT]
@@ -115,6 +117,7 @@ The approval is bound to the exact tool name and canonicalized input fingerprint
 
 ## Documentation
 
+- [Browse the documentation site](https://dhruvanand-aintech.github.io/agentic-ai-bar-docs/)
 - [Architecture and event protocol](docs/architecture.md)
 - [Provider adapters and model catalog](docs/providers.md)
 - [Threads, background runs, and sync](docs/runtime.md)

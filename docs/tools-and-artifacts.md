@@ -1,3 +1,8 @@
+---
+title: Tools, artifacts, AG-UI, and MCP Apps
+description: Structured tool states, versioned outputs, generative UI events, and sandboxed MCP App resources.
+---
+
 # Tools, artifacts, AG-UI, and MCP Apps
 
 ## Structured tool parts

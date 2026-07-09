@@ -1,3 +1,8 @@
+---
+title: Components
+description: React, React Native, Worker, CLI, and runtime interface surfaces.
+---
+
 # Components
 
 Import web components from `@ainorthstar/agentic-ai-bar/react` and the shared stylesheet from `@ainorthstar/agentic-ai-bar/react.css`.
@@ -73,4 +78,4 @@ Global changes should default to global approval. The host remains responsible f
 - `@ainorthstar/agentic-ai-bar/react-native`: native stage timeline and site-fix button; the host supplies screenshot capture.
 - CLI binary: connects to the same agent stream endpoint and records local JSONL run traces.
 
-Runtime data modules are documented in [Architecture](architecture.md), [Runtime](runtime.md), [Tools and artifacts](tools-and-artifacts.md), and [Observability and voice](observability-and-voice.md).
+Runtime data modules are documented in [Architecture](./architecture), [Runtime](./runtime), [Tools and artifacts](./tools-and-artifacts), [Observability](./observability), and [Voice](./voice).

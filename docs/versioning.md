@@ -1,3 +1,8 @@
+---
+title: Versioning and compatibility
+description: SemVer, event protocol versions, additive v0.2 exports, and upgrade guidance.
+---
+
 # Version and compatibility notes
 
 ## v0.2.0

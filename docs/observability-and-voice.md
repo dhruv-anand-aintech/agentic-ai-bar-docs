@@ -1,5 +1,7 @@
 # Observability and voice
 
+This former combined page is retained for existing links. The current documentation separates [observability](./observability) from the [voice runtime](./voice).
+
 ## Run traces
 
 The observability module models token usage, estimated cost, cache behavior, retries, spans, and run attributes without requiring a specific telemetry vendor.

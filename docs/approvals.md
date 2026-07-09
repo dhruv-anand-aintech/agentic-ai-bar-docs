@@ -1,3 +1,8 @@
+---
+title: Approvals and continuation
+description: Bind decisions to exact tool operations and consume authorization once before execution.
+---
+
 # Approvals and continuation
 
 An approval authorizes one exact, previously presented operation. It is not a generic confirmation prompt around mutable arguments.

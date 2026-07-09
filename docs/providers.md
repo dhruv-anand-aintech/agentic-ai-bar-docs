@@ -1,3 +1,8 @@
+---
+title: Provider adapters
+description: OpenAI, Anthropic, OpenAI-compatible, and LiteLLM adapters with normalized catalogs and results.
+---
+
 # Provider adapters
 
 Agentic AI Bar v0.2.0 treats OpenAI Responses, OpenAI Chat Completions, native Anthropic Messages, and OpenAI-compatible gateways as first-class transports. The runtime normalizes catalog discovery, capability validation, completion results, usage, tool calls, and errors without pretending the wire protocols are identical.
@@ -91,7 +96,7 @@ const result = await runtime.complete({
 console.log(result.text, result.toolCalls, result.usage);
 ```
 
-The completion surface is intentionally non-streaming. Provider streams should be translated into the [v0.2 event protocol](architecture.md#event-protocol) by the host so UI and persistence code remain provider-neutral.
+The completion surface is intentionally non-streaming. Provider streams should be translated into the [v0.2 event protocol](./events) by the host so UI and persistence code remain provider-neutral.
 
 ## Errors
 

@@ -1,4 +1,9 @@
-# Architecture and events
+---
+title: Architecture
+description: Trust boundaries between agent UI, provider adapters, tools, persistence, and human control.
+---
+
+# Architecture
 
 Agentic AI Bar is a presentation and protocol layer between an application, provider adapters, agent tools, and a human operator. Provider requests and privileged execution stay behind host-controlled boundaries.
 
@@ -38,6 +43,8 @@ Authenticated host API / Worker / local agent
 - Background and sync runtime: checkpoints, lifecycle transitions, remote-run contracts, synchronization, and conflict policy.
 
 ## Event protocol
+
+The full transport and delivery contract is documented in [Events and streaming](./events). The envelope summary below is useful when designing persistence schemas.
 
 `AGENTIC_EVENT_PROTOCOL_VERSION` is `"0.2"`. Every event includes:
 

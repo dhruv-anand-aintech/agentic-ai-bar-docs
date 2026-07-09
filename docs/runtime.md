@@ -1,3 +1,8 @@
+---
+title: Threads, background runs, and sync
+description: Durable branchable conversations, checkpoints, remote runners, and explicit synchronization conflicts.
+---
+
 # Threads, background runs, and sync
 
 ## Durable threads

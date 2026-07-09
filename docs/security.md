@@ -1,3 +1,8 @@
+---
+title: Security model
+description: Required controls for credentials, tools, approvals, events, generative UI, artifacts, and voice.
+---
+
 # Security model
 
 Agentic UI is a trust boundary. Treat model output and tool arguments as untrusted, keep provider credentials server-side, and make every external side effect pass a structured policy check.
