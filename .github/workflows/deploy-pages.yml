@@ -46,6 +46,12 @@ jobs:
       - name: Build documentation
         run: npm run docs:build
 
+      - name: Write deployment metadata
+        run: |
+          printf '{"git_sha":"%s","built_at":"%s"}\n' \
+            "$GITHUB_SHA" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            > docs/.vitepress/dist/deployment-info.json
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
