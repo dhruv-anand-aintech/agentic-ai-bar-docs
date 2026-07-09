@@ -31,8 +31,8 @@ export default defineConfig({
     ["meta", { property: "og:type", content: "website" }],
     ["meta", { property: "og:title", content: "Agentic AI Bar documentation" }],
     ["meta", { property: "og:site_name", content: "Agentic AI Bar" }],
-    ["meta", { property: "og:url", content: "https://dhruvanand-aintech.github.io/agentic-ai-bar-docs/" }],
-    ["meta", { property: "og:image", content: "https://dhruvanand-aintech.github.io/agentic-ai-bar-docs/images/agent-console.png" }],
+    ["meta", { property: "og:url", content: "https://dhruv-anand-aintech.github.io/agentic-ai-bar-docs/" }],
+    ["meta", { property: "og:image", content: "https://dhruv-anand-aintech.github.io/agentic-ai-bar-docs/images/agent-console.png" }],
     [
       "meta",
       {

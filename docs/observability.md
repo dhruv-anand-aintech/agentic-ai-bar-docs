@@ -23,5 +23,4 @@ Redact before persistence, export, and UI delivery. A denied-key list cannot ide
 
 `summarizeRunObservability` produces the compact input used by `AgenticRunObservability`. Estimated cost is telemetry rather than billing authority. Provider invoices remain the source of truth.
 
-See the [fictional observability example](https://github.com/dhruvanand-aintech/agentic-ai-bar-docs/blob/main/examples/observability-voice.ts).
-
+See the [fictional observability example](https://github.com/dhruv-anand-aintech/agentic-ai-bar-docs/blob/main/examples/observability-voice.ts).
