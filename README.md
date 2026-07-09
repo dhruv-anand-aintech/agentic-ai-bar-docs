@@ -10,8 +10,8 @@ Documentation and integration examples for an embeddable agent command surface: 
 ## What it provides
 
 - **Composable React surfaces** for prompts, attachments, mentions, citations, sessions, traces, modalities, voice I/O, and approval decisions.
-- **Provider-aware requests** for OpenAI Responses, OpenAI Chat Completions, native Anthropic Messages, and OpenAI-compatible gateways.
-- **A normalized model catalog** that keeps transport, capabilities, context limits, and gateway routing out of UI code.
+- **Reference provider contracts** for OpenAI Responses, OpenAI Chat Completions, native Anthropic Messages, and OpenAI-compatible gateways.
+- **A proposed normalized model catalog** that keeps transport, capabilities, context limits, and gateway routing out of UI code.
 - **Approval-bound file changes** with immutable proposals, expiry, one-time decisions, stale-file checks, backups, and atomic writes.
 - **Site feedback controls** that capture a viewport, annotate it, attach diagnostics, and report progress without handing the browser unrestricted control.
 - **Shared web, Worker, CLI, and React Native concepts** around one event and policy model.
@@ -63,7 +63,9 @@ export function SupportAgent() {
 
 Host applications own authentication, conversation persistence, provider credentials, tool execution, and decision endpoints. The bar supplies reusable UI and protocol helpers; it is not an autonomous runtime or security sandbox.
 
-## Provider adapters
+## Provider adapter reference design
+
+The current package exports model/request helpers for its existing OpenAI-oriented transports. The catalog and native Anthropic/gateway adapters below are a reference design for the broader provider surface, not a claim that those adapters ship today.
 
 Treat provider protocols as first-class transports instead of hiding every service behind a lowest-common-denominator schema:
 
@@ -75,7 +77,7 @@ const catalog = [
 ] as const;
 ```
 
-An OpenAI-compatible gateway such as LiteLLM becomes a single configuration line while retaining the model catalog:
+In the reference design, an OpenAI-compatible gateway such as LiteLLM becomes a single configuration line while retaining the model catalog:
 
 ```ts
 const gateway = openAICompatible({ baseURL: process.env.LITELLM_BASE_URL!, apiKey: process.env.LITELLM_API_KEY! });
@@ -120,4 +122,3 @@ This repository intentionally contains only documentation, independent mock requ
 ## License
 
 Documentation and mock examples in this repository are available under the [MIT License](LICENSE).
-
