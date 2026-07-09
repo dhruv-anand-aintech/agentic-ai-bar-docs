@@ -1,30 +1,64 @@
-# Approval flow
+# Approvals and continuation
 
-Approval is a binding authorization for one previously stored operation. It is not a confirmation dialog wrapped around arbitrary input.
+An approval authorizes one exact, previously presented operation. It is not a generic confirmation prompt around mutable arguments.
 
-## File-change lifecycle
+Agentic AI Bar v0.2.0 has two related approval layers:
 
-1. **Propose**: the agent supplies a workspace-relative path, desired content or deletion, and rationale.
-2. **Validate**: the server resolves the path beneath its configured root, rejects denied paths and symlink escapes, checks size limits, and records the current file hash.
-3. **Present**: the UI renders action, risk, target, rationale, diff, and expiry.
-4. **Decide**: an authenticated endpoint accepts only the stored proposal ID and `approved` or `rejected`.
-5. **Revalidate**: apply checks the approval state, expiry, target path, symlinks, and original file hash again.
-6. **Apply once**: the executor creates a backup where applicable, writes atomically, and consumes the approval.
-7. **Audit**: the final record includes actor, timestamps, result, and any safe error description.
+- `tool-runtime` manages continuation parts and exact one-time authorization for arbitrary structured tool calls.
+- `approval-server` is the Node-only file proposal store and executor with workspace, stale-file, backup, and atomic-write checks.
 
-```js
-const request = await approvals.proposeFileChange({
-  path: "config/retention.json",
-  content: JSON.stringify({ days: 30 }, null, 2) + "\n",
-  rationale: "Match the operator's approved retention policy",
-  sessionId,
-  runId,
+## Tool approval lifecycle
+
+1. Validate the proposed tool name and JSON input.
+2. Call `addToolApprovalRequest`; it computes a stable fingerprint from the name and canonicalized input.
+3. Persist the returned state and emit the returned `tool-approval-request` part.
+4. An authenticated user approves or rejects by approval ID.
+5. Call `decideToolApproval` and persist its `tool-approval-response` continuation part.
+6. Immediately before execution, call `consumeApprovedTool` with the same tool name and input.
+7. Execute only from the consumed authorization record. Persist the consumed state and audit result.
+
+```ts
+import {
+  addToolApprovalRequest,
+  consumeApprovedTool,
+  createToolApprovalState,
+  decideToolApproval,
+} from "@ainorthstar/agentic-ai-bar/tool-runtime";
+
+let state = createToolApprovalState();
+const request = addToolApprovalRequest(state, {
+  approvalId: "approval-demo-2",
+  toolCallId: "call-demo-2",
+  toolName: "update-record",
+  input: { recordId: "record-demo-8", owner: "team-demo" },
+  summary: "Assign the fictional record",
+  risk: "medium",
+  createdAt: new Date().toISOString(),
 });
+state = request.state;
+
+state = decideToolApproval(state, {
+  approvalId: request.part.approvalId,
+  decision: "approved",
+  decidedAt: new Date().toISOString(),
+}).state;
+
+const consumed = consumeApprovedTool(
+  state,
+  request.part.approvalId,
+  request.part.toolName,
+  request.part.input,
+);
+state = consumed.state;
 ```
+
+`canInvokeApprovedTool` is only a status helper. Executors must call `consumeApprovedTool`. A mismatched name or input, missing or rejected decision, or replayed approval raises a structured authorization error. An exact rejected fingerprint is remembered so the agent cannot repeatedly ask for the same denied operation.
+
+Persist continuation state with the thread or run. In-memory state alone is insufficient across server restarts or multiple replicas.
 
 ## Decision endpoint
 
-The browser must never send replacement operation arguments with its decision:
+The browser decision body should contain no replacement tool arguments:
 
 ```ts
 type ApprovalDecisionBody = {
@@ -33,24 +67,30 @@ type ApprovalDecisionBody = {
 };
 ```
 
-The host should authenticate the request, authorize access to the request's session, enforce same-origin or CSRF protection, rate-limit decisions, then call `decide(approvalId, decision, actorId)`.
+The host authenticates the actor, authorizes access to the request's thread/run, enforces same-origin or CSRF protection, rate-limits decisions, and writes the decision once.
 
-## Risk display
+## Node file changes
 
-| Risk | Typical operation | UI expectation |
-| --- | --- | --- |
-| Medium | Create a new non-sensitive workspace file | Diff and explicit decision |
-| High | Update or delete an existing file | Strong target labeling and expiry |
-| Critical | Broad, external, or irreversible side effect | Separate executor and stronger policy; file approval alone is insufficient |
+For file operations, `createAgenticApprovalStore` adds workspace-specific checks:
 
-## What file approvals do not authorize
+1. Propose a workspace-relative path, desired content or deletion, and rationale.
+2. Resolve beneath the configured root, reject denied paths and symlink escapes, enforce size limits, and record the current file hash.
+3. Present action, target, rationale, diff, risk, and expiry.
+4. Decide by stored proposal ID only.
+5. Revalidate approval, expiry, path, symlinks, and original hash.
+6. Create a backup where applicable, apply atomically, and consume once.
 
-- Arbitrary shell commands
-- Network requests to user-supplied destinations
-- Writes outside the configured root
-- Secret or credential changes
-- Recursive directory deletion
-- A later operation whose content differs from the stored proposal
+```js
+import { createAgenticApprovalStore } from "@ainorthstar/agentic-ai-bar/approval-server";
 
-Each new side-effect class needs its own structured proposal schema, validator, preview, and executor. Shell execution in particular needs an argv allowlist or OS-level sandbox; a generic approval prompt does not make it safe.
+const approvals = await createAgenticApprovalStore({ root: process.cwd() });
+const proposal = await approvals.proposeFileChange({
+  path: "config/example-policy.json",
+  content: JSON.stringify({ reviewWindowDays: 14 }, null, 2) + "\n",
+  rationale: "Apply the fictional review window requested by the operator",
+});
+```
 
+## Not authorized
+
+Neither approval layer by itself authorizes unrestricted shell commands, arbitrary outbound network requests, writes outside the configured root, credential changes, recursive deletion, or a later operation whose arguments differ from the stored request. Each side-effect class needs a schema, validator, preview, policy, and narrow executor.

@@ -22,6 +22,29 @@ Import web components from `@ainorthstar/agentic-ai-bar/react` and the shared st
 | `AgenticModalityBar` | Input, output, tool, and UI channel state | Normalized modality state |
 | `AgenticVoiceIOPanel` | Push-to-talk and speech output controls | Host speech services and callbacks |
 
+## v0.2 runtime views
+
+Import the additive runtime components and stylesheet separately:
+
+```tsx
+import {
+  AgenticArtifactList,
+  AgenticRunObservability,
+  AgenticToolPartView,
+  AgenticVoiceControls,
+} from "@ainorthstar/agentic-ai-bar/react-runtime";
+import "@ainorthstar/agentic-ai-bar/react-runtime.css";
+```
+
+| Component | Purpose | Key host inputs |
+| --- | --- | --- |
+| `AgenticToolPartView` | Generic structured tool state and exact approval actions | Tool part, optional descriptor, approve/reject callbacks |
+| `AgenticArtifactList` | Versioned artifact list with preview/open actions | Artifact manifests and authorized open callback |
+| `AgenticRunObservability` | Token, cost, cache, retry, and duration summary | Redacted observability summary |
+| `AgenticVoiceControls` | Voice pipeline phase and user controls | Voice state and connect/listen/interrupt callbacks |
+
+Use the separate CSS entry point to avoid changing v0.1 styling implicitly. Approval callbacks must call a trusted endpoint; a rendered button or local state transition is not authorization.
+
 ## Human control
 
 | Component | Purpose | Key host inputs |
@@ -50,3 +73,4 @@ Global changes should default to global approval. The host remains responsible f
 - `@ainorthstar/agentic-ai-bar/react-native`: native stage timeline and site-fix button; the host supplies screenshot capture.
 - CLI binary: connects to the same agent stream endpoint and records local JSONL run traces.
 
+Runtime data modules are documented in [Architecture](architecture.md), [Runtime](runtime.md), [Tools and artifacts](tools-and-artifacts.md), and [Observability and voice](observability-and-voice.md).

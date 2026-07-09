@@ -1,47 +1,51 @@
 # Agentic AI Bar
 
-Documentation and integration examples for an embeddable agent command surface: model selection, streaming runs, trace timelines, citations, screenshot-based site feedback, and server-enforced approvals.
+Public documentation and mock integration examples for Agentic AI Bar v0.2.0, an embeddable agent command surface and provider-neutral runtime contract.
 
 > [!IMPORTANT]
-> This is the public documentation repository. The library implementation and production applications are maintained in private repositories. Every screenshot and data sample here is invented.
+> This is the public documentation repository. The library package and production applications remain private. The package is not advertised as available from a public registry. Every screenshot, identifier, trace, and data sample here is fictional.
 
 ![Agent console with a model selector, trace timeline, and cited answer](assets/agent-console.png)
 
-## What it provides
+## What ships in v0.2.0
 
-- **Composable React surfaces** for prompts, attachments, mentions, citations, sessions, traces, modalities, voice I/O, and approval decisions.
-- **Reference provider contracts** for OpenAI Responses, OpenAI Chat Completions, native Anthropic Messages, and OpenAI-compatible gateways.
-- **A proposed normalized model catalog** that keeps transport, capabilities, context limits, and gateway routing out of UI code.
-- **Approval-bound file changes** with immutable proposals, expiry, one-time decisions, stale-file checks, backups, and atomic writes.
-- **Site feedback controls** that capture a viewport, annotate it, attach diagnostics, and report progress without handing the browser unrestricted control.
-- **Shared web, Worker, CLI, and React Native concepts** around one event and policy model.
+- Provider adapters for OpenAI Responses, OpenAI Chat Completions, native Anthropic Messages, and OpenAI-compatible gateways such as LiteLLM.
+- A normalized, discoverable model catalog with capability checks, overrides, caching, and provider error normalization.
+- A versioned event protocol for runs, text, reasoning, tools, approvals, artifacts, usage, and errors over SSE, WebSocket, or async iterables.
+- Durable thread contracts with optimistic versioning, pagination, editing, regeneration, branch selection, serialization, and resume/cancel operations.
+- Background-run checkpoints plus remote-run and sync contracts with explicit conflict resolution.
+- Structured tool parts, pluggable renderers, and exact one-time approval continuation state.
+- Versioned artifacts, safe preview/download selection, lineage, AG-UI events, and sandboxed MCP App resources.
+- Usage, cost, cache, retry, span, and redaction helpers; voice state management; and optional React runtime views.
+- Existing v0.1 React, React Native, site-feedback, Worker, and Node file-approval exports remain available.
 
-## Integration map
+## Package access
 
-| Need | Surface |
-| --- | --- |
-| Prompt, models, attachments, mentions | `AgenticComposer` |
-| Run progress | `AgenticStageTimeline` |
-| Sources | `AgenticCitationList` |
-| Tool and model trace | `AgenticTracePanel` |
-| Human authorization | `AgenticApprovalPanel` + server approval store |
-| Screenshot feedback | `AgenticSiteFixButton` |
-| Autonomy controls | `AgenticSiteControlPanel` |
-| Worker ingestion | `handleSiteFixLogIngest`, `handleSiteFixStatus` |
-| React Native feedback | `AgenticSiteFixButtonNative` |
+The package is distributed only to authorized private consumers. Use the installation source supplied by the package owner, then import a narrow subpath:
 
-## Quick start
+```ts
+import { createAgenticRuntime, liteLLM } from "@ainorthstar/agentic-ai-bar/provider-runtime";
 
-The package is currently distributed privately. Authorized consumers can install it through the configured package registry, then compose only the surfaces they need:
+const runtime = createAgenticRuntime(
+  liteLLM({
+    baseURL: process.env.LITELLM_BASE_URL!,
+    apiKey: process.env.LITELLM_API_KEY!,
+  }),
+);
+
+const models = await runtime.listModels();
+```
+
+Provider calls and credentials belong in a trusted server, Worker, or local agent. Never bundle provider keys or a user-controlled gateway URL into browser code.
+
+## React composition
 
 ```tsx
 import { useState } from "react";
-import {
-  AgenticApprovalPanel,
-  AgenticComposer,
-  AgenticStageTimeline,
-} from "@ainorthstar/agentic-ai-bar/react";
+import { AgenticComposer, AgenticStageTimeline } from "@ainorthstar/agentic-ai-bar/react";
+import { AgenticArtifactList, AgenticRunObservability } from "@ainorthstar/agentic-ai-bar/react-runtime";
 import "@ainorthstar/agentic-ai-bar/react.css";
+import "@ainorthstar/agentic-ai-bar/react-runtime.css";
 
 export function SupportAgent() {
   const [prompt, setPrompt] = useState("");
@@ -49,75 +53,82 @@ export function SupportAgent() {
   return (
     <main>
       <AgenticStageTimeline stages={[]} />
-      <AgenticApprovalPanel requests={[]} onDecision={console.log} />
-      <AgenticComposer
-        value={prompt}
-        onChange={setPrompt}
-        onSubmit={() => console.log({ prompt })}
-        models={[]}
-      />
+      <AgenticRunObservability summary={{
+        spanCount: 0,
+        errorCount: 0,
+        retryCount: 0,
+        cacheHits: 0,
+        latencyMs: 0,
+        usage: { inputTokens: 0, outputTokens: 0, reasoningTokens: 0, cachedInputTokens: 0, totalTokens: 0 },
+        costByCurrency: {},
+      }} />
+      <AgenticArtifactList artifacts={[]} />
+      <AgenticComposer value={prompt} onChange={setPrompt} onSubmit={() => console.log({ prompt })} models={[]} />
     </main>
   );
 }
 ```
 
-Host applications own authentication, conversation persistence, provider credentials, tool execution, and decision endpoints. The bar supplies reusable UI and protocol helpers; it is not an autonomous runtime or security sandbox.
+Host applications still own authentication, persistence backends, provider credentials, tool executors, authorization endpoints, queues, and network policy. The package supplies reusable UI, in-memory reference stores, normalized contracts, and protocol helpers; it is not an OS sandbox.
 
-## Provider adapter reference design
-
-The current package exports model/request helpers for its existing OpenAI-oriented transports. The catalog and native Anthropic/gateway adapters below are a reference design for the broader provider surface, not a claim that those adapters ship today.
-
-Treat provider protocols as first-class transports instead of hiding every service behind a lowest-common-denominator schema:
-
-```ts
-const catalog = [
-  { id: "reasoning-large", provider: "openai", transport: "openai-responses", capabilities: ["text", "vision", "tools"] },
-  { id: "chat-fast", provider: "openai", transport: "openai-chat-completions", capabilities: ["text", "tools"] },
-  { id: "analysis-pro", provider: "anthropic", transport: "anthropic-messages", capabilities: ["text", "vision", "tools"] },
-] as const;
-```
-
-In the reference design, an OpenAI-compatible gateway such as LiteLLM becomes a single configuration line while retaining the model catalog:
-
-```ts
-const gateway = openAICompatible({ baseURL: process.env.LITELLM_BASE_URL!, apiKey: process.env.LITELLM_API_KEY! });
-```
-
-See [Provider adapters](docs/providers.md) and the request-only [mock examples](examples/README.md). Native Anthropic Messages is documented separately; Anthropic's OpenAI compatibility layer is useful for migrations but is not presented as behaviorally equivalent to the native API.
-
-## Approval flow
+## Exact approvals
 
 ![A file-change proposal with a diff and explicit Reject and Approve once actions](assets/approval-flow.png)
 
-```js
-import { createAgenticApprovalStore } from "@ainorthstar/agentic-ai-bar/approval-server";
+```ts
+import {
+  addToolApprovalRequest,
+  consumeApprovedTool,
+  createToolApprovalState,
+  decideToolApproval,
+} from "@ainorthstar/agentic-ai-bar/tool-runtime";
 
-const approvals = await createAgenticApprovalStore({ root: process.cwd() });
-const proposal = await approvals.proposeFileChange({
-  path: "config/retention.json",
-  content: "{\n  \"days\": 30\n}\n",
-  rationale: "Apply the retention period requested by the operator",
+let approvals = createToolApprovalState();
+const requested = addToolApprovalRequest(approvals, {
+  approvalId: "approval-demo-1",
+  toolCallId: "call-demo-1",
+  toolName: "update-record",
+  input: { recordId: "record-demo-7", status: "reviewed" },
+  summary: "Mark the fictional record as reviewed",
+  risk: "medium",
+  createdAt: new Date().toISOString(),
 });
+approvals = requested.state;
 
-// The authenticated host decides using only the proposal id and decision.
-approvals.decide(proposal.id, "approved", "operator-42");
-await approvals.apply(proposal.id);
+approvals = decideToolApproval(approvals, {
+  approvalId: requested.part.approvalId,
+  decision: "approved",
+  decidedAt: new Date().toISOString(),
+}).state;
+
+const authorized = consumeApprovedTool(
+  approvals,
+  requested.part.approvalId,
+  requested.part.toolName,
+  requested.part.input,
+);
+approvals = authorized.state;
+// Execute only authorized.authorization. A second consume fails.
 ```
 
-The server stores the exact operation before approval. A decision cannot replace its path, content, or action. Applying a request revalidates the target and consumes approval once. Read [Approval flow](docs/approvals.md) before exposing write tools.
+The approval is bound to the exact tool name and canonicalized input fingerprint. Rejected calls cannot silently request the same approval again, and approved calls are consumed once. Read [Approvals](docs/approvals.md) before enabling side effects.
 
 ## Documentation
 
-- [Architecture](docs/architecture.md)
+- [Architecture and event protocol](docs/architecture.md)
 - [Provider adapters and model catalog](docs/providers.md)
-- [Approval flow](docs/approvals.md)
+- [Threads, background runs, and sync](docs/runtime.md)
+- [Approvals and tool continuation](docs/approvals.md)
+- [Tools, artifacts, AG-UI, and MCP Apps](docs/tools-and-artifacts.md)
 - [React and platform components](docs/components.md)
+- [Observability and voice](docs/observability-and-voice.md)
 - [Security model](docs/security.md)
-- [Mock provider examples](examples/README.md)
+- [Mock examples](examples/README.md)
+- [Version and compatibility notes](docs/versioning.md)
 
 ## Repository scope
 
-This repository intentionally contains only documentation, independent mock request builders, and screenshots rendered from fictional data. It contains no library implementation, production data, traces, credentials, customer identifiers, or internal filesystem paths.
+This repository contains documentation, independent mock fixtures, and screenshots rendered from fictional data. It contains no library implementation, production data, real traces, credentials, customer identifiers, or private filesystem paths.
 
 ## License
 

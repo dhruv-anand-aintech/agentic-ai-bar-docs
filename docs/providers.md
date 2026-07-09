@@ -1,74 +1,111 @@
 # Provider adapters
 
-Provider support should normalize orchestration without erasing meaningful protocol differences. OpenAI Responses, OpenAI Chat Completions, and Anthropic Messages are distinct transports. OpenAI-compatible gateways reuse the Chat Completions request path with configurable routing.
+Agentic AI Bar v0.2.0 treats OpenAI Responses, OpenAI Chat Completions, native Anthropic Messages, and OpenAI-compatible gateways as first-class transports. The runtime normalizes catalog discovery, capability validation, completion results, usage, tool calls, and errors without pretending the wire protocols are identical.
 
-> The adapter contract and catalog below are reference designs for host applications. The public examples build request objects but make no network calls.
-
-## Normalized catalog
-
-Keep catalog data independent of credentials and UI code:
+Import the provider runtime from its dedicated subpath:
 
 ```ts
-type ModelCatalogEntry = {
-  id: string;
-  label: string;
-  provider: "openai" | "anthropic" | "gateway" | string;
-  transport: "openai-responses" | "openai-chat-completions" | "anthropic-messages";
-  upstreamModel?: string;
-  capabilities: Array<"text" | "vision" | "tools" | "reasoning" | "json">;
-  contextWindow?: number;
-  maxOutputTokens?: number;
-  baseURL?: string;
-};
+import {
+  anthropicMessages,
+  createAgenticRuntime,
+  liteLLM,
+  openAIChatCompletions,
+  openAICompatible,
+  openAIResponses,
+} from "@ainorthstar/agentic-ai-bar/provider-runtime";
 ```
 
-The UI sends the catalog `id`. The trusted host resolves it to `transport`, `upstreamModel`, credentials, and limits. Do not accept arbitrary base URLs or provider keys from browser input.
-
-## Transport contract
-
-A host adapter should provide three small operations:
+## Adapters
 
 ```ts
-interface ProviderAdapter {
-  buildRequest(input: NormalizedRunInput, model: ModelCatalogEntry): ProviderRequest;
-  parseStream(chunk: Uint8Array): NormalizedAgentEvent[];
-  normalizeError(error: unknown): NormalizedProviderError;
-}
+const responses = openAIResponses({ apiKey: process.env.OPENAI_API_KEY });
+const chat = openAIChatCompletions({ apiKey: process.env.OPENAI_API_KEY });
+const messages = anthropicMessages({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+const compatible = openAICompatible({
+  baseURL: process.env.COMPATIBLE_API_BASE_URL!,
+  apiKey: process.env.COMPATIBLE_API_KEY,
+  transport: "openai-chat-completions",
+});
+
+// One adapter line for LiteLLM.
+const gateway = liteLLM({
+  baseURL: process.env.LITELLM_BASE_URL!,
+  apiKey: process.env.LITELLM_API_KEY,
+});
 ```
 
-Normalized events should distinguish at least `text.delta`, `text.done`, `tool.call`, `tool.result`, `usage`, `error`, and `run.done`. Preserve provider event IDs and raw event types in metadata for debugging.
+All values above must be supplied by trusted server configuration. Do not accept `baseURL`, headers, or API keys from the browser.
 
-## OpenAI Responses
-
-Use Responses when the selected model and workflow benefit from its native input items, response lifecycle, built-in tool concepts, or multi-modal request structure. See [the mock request builder](../examples/openai-responses.ts).
-
-## OpenAI Chat Completions
-
-Use Chat Completions for models and gateways centered on the messages-and-choices protocol. See [the mock request builder](../examples/openai-chat-completions.ts).
-
-## Anthropic Messages
-
-Use Anthropic's native Messages protocol for Anthropic models when native semantics, content blocks, tool-use events, and usage fields matter. The OpenAI compatibility endpoint can reduce migration work, but it should not be treated as production-equivalent to Messages without testing every required feature. See [the mock request builder](../examples/anthropic-messages.ts).
-
-## LiteLLM and compatible gateways
-
-Gateway routing should be configuration, not a new UI branch:
+## Runtime and catalog
 
 ```ts
-const gateway = openAICompatible({ baseURL: process.env.LITELLM_BASE_URL!, apiKey: process.env.LITELLM_API_KEY! });
+const runtime = createAgenticRuntime(gateway, {
+  catalogTtlMs: 300_000,
+  overrides: [
+    {
+      id: "support-fast",
+      label: "Support Fast",
+      inputModalities: ["text"],
+      outputModalities: ["text"],
+      tools: true,
+    },
+  ],
+});
+
+const catalog = await runtime.listModels();
+const model = await runtime.getModel("support-fast");
+
+runtime.validateInput(model, {
+  inputModalities: ["text"],
+  tools: true,
+  inputTokens: 2_000,
+  outputTokens: 500,
+});
 ```
 
-Catalog entries can then point to gateway model aliases while the adapter remains `openai-chat-completions`. See [the LiteLLM mock](../examples/litellm-gateway.ts).
+A normalized model records its stable ID, label, provider, upstream model, supported transports, input and output modalities, tool/structured-output/reasoning support, context and output limits, pricing metadata, deprecation state, and raw provider metadata. Overrides let the host repair or enrich incomplete discovery results without putting routing rules in UI code.
 
-## Capability gating
+Catalog methods cache by default. Use `listModels({ forceRefresh: true })`, `getModel(id, { forceRefresh: true })`, or `clearCatalogCache()` when trusted configuration changes.
 
-Before a run, validate the requested input against catalog capabilities:
+## Non-streaming completion
 
-- Disable image attachments when `vision` is absent.
-- Exclude tools when `tools` is absent.
-- Enforce context and output limits server-side.
-- Do not infer JSON-schema support from generic tool support.
-- Treat reasoning controls as transport-specific optional metadata.
+```ts
+const result = await runtime.complete({
+  model: "support-fast",
+  system: "Use only the supplied fictional policy notes.",
+  text: "Summarize the review state.",
+  tools: [
+    {
+      name: "lookup-review",
+      description: "Read a fictional review record",
+      inputSchema: {
+        type: "object",
+        properties: { recordId: { type: "string" } },
+        required: ["recordId"],
+      },
+    },
+  ],
+});
 
-Catalog values are operational configuration. Version them, log the resolved entry ID, and expose a safe catalog endpoint rather than shipping credentials or internal routing rules to the browser.
+console.log(result.text, result.toolCalls, result.usage);
+```
 
+The completion surface is intentionally non-streaming. Provider streams should be translated into the [v0.2 event protocol](architecture.md#event-protocol) by the host so UI and persistence code remain provider-neutral.
+
+## Errors
+
+Provider failures are normalized as `AgenticProviderError` with a stable `code`, provider, HTTP status where available, retryability, and optional details. Stable codes include authentication, authorization, invalid request, model not found, rate limit, timeout, network, unsupported capability, and provider errors.
+
+Treat `details` as sensitive. Redact it before persistence or display.
+
+## Protocol choice
+
+| Transport | Use when |
+| --- | --- |
+| OpenAI Responses | Native response items, Responses lifecycle, structured output, or built-in tool concepts are required |
+| OpenAI Chat Completions | The model or gateway is centered on messages and choices |
+| Anthropic Messages | Native Anthropic content blocks, tools, and usage semantics matter |
+| OpenAI-compatible | A trusted gateway implements the expected endpoint closely enough for the selected feature set |
+
+Compatibility is a transport choice, not proof of feature equivalence. Validate every capability used by the application, especially streaming events, tool schemas, structured output, reasoning controls, and usage fields.
